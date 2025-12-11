@@ -1,31 +1,134 @@
 version: "3.9"
 
 services:
+  # Postgres for user-service
+  postgres_user:
+    image: postgres:16
+    container_name: user_service_postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: user_service
+      POSTGRES_PASSWORD: user_service_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_service_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_service -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Postgres for db-llm-analyzer (data service)
+  postgres_analytics:
+    image: postgres:16
+    container_name: analytics_postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "1234"
+    ports:
+      - "5433:5432"
+    volumes:
+      - analytics_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Elasticsearch for log-analyzer
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # Log Analyzer (RCA service)
+  log-analyzer:
+    build: ./log-analyzer
+    container_name: log_analyzer_app
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      ELASTICSEARCH_SCHEME: http
+      LOG_FILE_PATH: /logs/application.log
+    volumes:
+      - ./logs:/logs
+    ports:
+      - "8080:8080"
+
+  # Data / DB LLM analyzer (Python FastAPI)
+  db-llm-analyzer:
+    build: ./db-llm-analyzer
+    container_name: db_llm_analyzer_app
+    depends_on:
+      postgres_analytics:
+        condition: service_healthy
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: "1234"
+      DB_HOST: postgres_analytics
+      DB_PORT: 5432
+      DB_NAME: postgres
+      API_PORT: 8083
+    ports:
+      - "8083:8083"
+
+  # User Service (Spring Boot backend / router)
   user-service:
     build: ./user-service
     container_name: user_service_app
+    depends_on:
+      postgres_user:
+        condition: service_healthy
+      log-analyzer:
+        condition: service_started
+      db-llm-analyzer:
+        condition: service_started
     environment:
-      # External database configuration (DB itself is NOT in Docker)
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_user:5432/postgres?currentSchema=intelbotdb
+      DB_USERNAME: user_service
+      DB_PASSWORD: user_service_password
 
-      # JWT configuration
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY}
+
+      RCA_SERVICE_URL: http://log-analyzer:8080/api/query/markdown
+      DATA_SERVICE_URL: http://db-llm-analyzer:8083/api/v1/query
     ports:
       - "8081:8081"
 
+  # React frontend (AI-Bot-Frontend)
   frontend:
     build: ./AI-Bot-Frontend
     container_name: ai_bot_frontend
     depends_on:
       - user-service
     environment:
-      # Base URL that the React app uses to call the backend
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8081/api}
     ports:
       - "5173:80"
 
+volumes:
+  user_service_pg_data:
+  analytics_pg_data:
 
