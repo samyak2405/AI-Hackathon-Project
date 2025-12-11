@@ -20,6 +20,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
@@ -73,6 +75,33 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    /**
+     * MVC-level CORS configuration (mirrors security CORS) so that handler mappings
+     * also emit the correct CORS headers when invoked outside the security filter chain.
+     */
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                boolean allowAll = allowedOrigins.size() == 1 && "*".equals(allowedOrigins.get(0));
+                if (allowAll) {
+                    registry.addMapping("/**")
+                            .allowedOriginPatterns("*")
+                            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                            .allowedHeaders("*")
+                            .allowCredentials(false);
+                } else {
+                    registry.addMapping("/**")
+                            .allowedOrigins(allowedOrigins.toArray(new String[0]))
+                            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                            .allowedHeaders("*")
+                            .allowCredentials(true);
+                }
+            }
+        };
     }
 
     @Bean
