@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  user-service:
+    build: ./user-service
+    container_name: user_service_app
+    environment:
+      # External database configuration (DB itself is NOT in Docker)
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # JWT configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+    ports:
+      - "8081:8081"
+
+  frontend:
+    build: ./AI-Bot-Frontend
+    container_name: ai_bot_frontend
+    depends_on:
+      - user-service
+    environment:
+      # Base URL that the React app uses to call the backend
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8081/api}
+    ports:
+      - "5173:80"
+
+

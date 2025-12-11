@@ -1,0 +1,439 @@
+{
+	"info": {
+		"_postman_id": "loganalyser-api-collection",
+		"name": "Log Analyser API",
+		"description": "Collection for testing Log Analyser API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"health"
+					]
+				},
+				"description": "Check if the service is running"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Transaction Analysis",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What happened with transaction TX872000310? Analyze the logs and provide details.\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Query logs for a specific transaction ID. The transaction ID (TX872000310) is extracted from the query string.\n\nThis will:\n1. Extract transaction ID from query (TX872000310)\n2. Look up the transaction ID in the database\n3. Retrieve the UUID and Service ID\n4. Search logs in Elasticsearch for the transaction ID\n5. Send query and logs to OpenAI for analysis"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Transaction Status",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What was the status of transaction TX651750504? Was it successful or failed?\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Check the status of a transaction"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Error Analysis",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What errors occurred during transaction TX872000310? Provide details about any failures.\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Analyze errors in a transaction"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Developer RCA Analysis",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"Perform root cause analysis for transaction TX872000310. Identify the issue, timeline, impact, and provide actionable fixes.\",\n    \"category\": \"DEVELOPER_RCA\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Root Cause Analysis using SRE/Backend Engineer persona. Uses DEVELOPER_RCA category for detailed technical analysis with structured output including timeline, impact, root cause, and mitigation steps.\n\nAvailable categories:\n- DEVELOPER_RCA: SRE/Backend Engineer persona for technical RCA\n- GENERAL: Basic log analysis (default)\n- PERFORMANCE_ANALYSIS: Performance bottlenecks and optimization\n- SECURITY_ANALYSIS: Security vulnerabilities and threats\n- BUSINESS_IMPACT: Business metrics and user impact"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Performance Analysis",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"Analyze performance bottlenecks for transaction TX872000310. Identify slow operations and optimization opportunities.\",\n    \"category\": \"PERFORMANCE_ANALYSIS\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Performance analysis using PERFORMANCE_ANALYSIS category"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Security Analysis",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"Analyze security issues for transaction TX872000310. Check for vulnerabilities, unauthorized access, or suspicious activities.\",\n    \"category\": \"SECURITY_ANALYSIS\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Security analysis using SECURITY_ANALYSIS category"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Business Impact Analysis",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What is the business impact of issues in transaction TX872000310? How many users are affected and what is the revenue impact?\",\n    \"category\": \"BUSINESS_IMPACT\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Business impact analysis using BUSINESS_IMPACT category"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Transaction Timeline",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What is the timeline of events for transaction TX820325700? List all steps in chronological order.\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Get a chronological timeline of events for a transaction"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Payment Details",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What are the payment details for transaction TX651750504? Include amount, method, and authorization code.\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Get payment details for a transaction"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Non-existent Transaction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What happened with transaction TX999999999?\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Test error handling for non-existent transaction ID"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Missing Transaction ID",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What happened?\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Test validation error for missing transaction ID"
+			},
+			"response": []
+		},
+		{
+			"name": "Query - Missing Query",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transactionId\": \"TX872000310\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query"
+					]
+				},
+				"description": "Test validation error for missing query"
+			},
+			"response": []
+		},
+		{
+			"name": "Query Markdown - Developer RCA Analysis",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "text/markdown"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"Perform root cause analysis for transaction TX872000310. Identify the issue, timeline, impact, and provide actionable fixes.\",\n    \"category\": \"DEVELOPER_RCA\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query/markdown",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query",
+						"markdown"
+					]
+				},
+				"description": "Root Cause Analysis using DEVELOPER_RCA category, expecting a markdown-formatted report.\n\nThis calls /api/query/markdown, which:\n1. Extracts the transaction ID from the query string\n2. Fetches transaction metadata and logs\n3. Calls OpenAI with DEVELOPER_RCA prompt rules\n4. Returns the raw markdown text from OpenAI.\n\nUse this when you want to render the report as markdown in a UI."
+			},
+			"response": []
+		},
+		{
+			"name": "Query Markdown - General Analysis",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "text/markdown"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"What happened with transaction TX872000310? Analyze the logs and provide a markdown report.\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/query/markdown",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"query",
+						"markdown"
+					]
+				},
+				"description": "General log analysis using the default GENERAL category, returning a markdown-formatted report."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
+
