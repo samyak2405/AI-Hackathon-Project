@@ -2,6 +2,7 @@ package com.example.userservice.security;
 
 import com.example.userservice.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,6 +31,13 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserRepository userRepository;
 
+    /**
+     * Comma-separated list of allowed origins. Override via CORS_ALLOWED_ORIGINS env.
+     * Example: http://your-frontend-host,http://localhost:5173
+     */
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://13.232.44.242}")
+    private List<String> allowedOrigins;
+
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByUsername(username)
@@ -54,12 +62,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Frontend dev server origin
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        boolean allowAll = allowedOrigins.size() == 1 && "*".equals(allowedOrigins.get(0));
+        config.setAllowedOriginPatterns(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
-        // Needed if you send or receive cookies (e.g. HttpOnly JWT cookies)
-        config.setAllowCredentials(true);
+        // With wildcard, credentials must be disabled; with explicit origins keep enabled.
+        config.setAllowCredentials(!allowAll);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
